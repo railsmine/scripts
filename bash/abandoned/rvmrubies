@@ -1,0 +1,51 @@
+#!/bin/bash
+
+RUBIES=( 1.8.7 1.9.2 ree )
+GLOBAL="heroku i18n mysql mysql2 bundler capistrano"
+
+function geminstall() { rvmsudo gem install --no-ri --no-rdoc $@; }
+
+# ALL RUBIES
+for ruby in $RUBIES; do
+	# install this ruby
+	rvmsudo rvm install $ruby;
+	
+	# create a global gemset
+	rvmsudo rvm use $ruby@global --create
+	geminstall $GLOBAL;
+	
+	# install latest rails
+	rvmsudo rvm use $ruby@latest --create
+	geminstall rails;
+done
+
+# RUBY: 1.8.7
+for RAILS in 2.2.2 2.3.5 2.3.8 2.3.11; do
+	rvmsudo rvm use 1.8.7@$RAILS --create
+	geminstall rails -v=$RAILS
+done
+rvm use 1.8.7@global; geminstall passenger
+rvmsudo passenger-install-apache2-module
+
+# RUBY: ree
+	rvmsudo rvm use ree@2.3.5
+	geminstall rails -v=2.3.5
+	
+# CREATE OUR ALIASES
+rvm alias create 187		1.8.7
+rvm alias create 192		1.9.2
+
+rvm alias create 187glob	1.8.7@global
+rvm alias create 197glob	1.9.2@global
+rvm alias create reeglob	ree@global
+
+rvm alias create 187late	1.8.7@latest
+rvm alias create 192late	1.9.2@latest
+rvm alias create reelate	ree@latest
+
+rvm alias create 187222		1.8.7@2.2.2
+rvm alias create 187235		1.8.7@2.3.5
+rvm alias create 187238		1.8.7@2.3.8
+rvm alias create 1872311	1.8.7@2.3.11
+
+rvm alias create ree235		ree@2.3.5

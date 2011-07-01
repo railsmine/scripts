@@ -1,0 +1,8 @@
+<VirtualHost *:80>
+    ServerAdmin webmaster@app-domain
+    ServerName app-domain
+    DocumentRoot app-dir
+    PassengerEnabled off
+    ProxyPass / http://127.0.0.1:app-port/
+    ProxyPassReverse / http://127.0.0.1:app-port/
+</VirtualHost>

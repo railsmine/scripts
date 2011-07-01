@@ -1,0 +1,202 @@
+#!/bin/bash
+
+# =============================================================== #
+# This script installs the Web Development Environment, I need.
+# This script is entirely testing-purposes only.
+# I provide no guarantees on the use of this script, whatsoever.
+# Created esp. for Ubuntu Maverick Meerkat.
+# =============================================================== #
+
+# Gems which will be installed on all RVM Rubies
+GLOBAL_GEMS="heroku i18n mysql mysql2 bundler passenger capistrano"
+
+# Yeah, passenger is installed on all rubies, and I use mod_proxy
+# to make it work like that. You can safely remove passenger from
+# this list, and it will be installed with REE for you.
+
+# =============================================================== #
+
+echo "===============================================================
+Running:      Web Development Environment Installer
+On Time:      `date -R`
+===============================================================";
+
+function sagi() {
+	#echo "PASSWORD" | sudo -S apt-get -y --force-yes install "$@";
+	sudo apt-get -y --force-yes install "$@";
+}
+
+# update the system, remove not required packages and clean our apt installer
+sudo apt-get update && sudo apt-get -y --force-yes upgrade && sudo apt-get -y --force-yes dist-upgrade
+sudo apt-get autoremove && sudo apt-get autoclean
+
+# install nano editor
+echo "Installing Nano for the love of it.."
+sagi nano
+
+echo "Installing required dependencies.."
+sagi build-essential python-setuptools autoconf bison build-essential libapr1-dev libaprutil1-dev libcurl4-openssl-dev libid3-3.8.3-dev libmysqlclient16 libmysqlclient16-dev libreadline6 libreadline6-dev libsqlite3-0 libsqlite3-dev libssl-dev libxml2-dev libxslt-dev libyaml-dev zlib1g zlib1g-dev libapache2-mod-php5 libapache2-mod-auth-mysql redis-server libxslt1.1 libxslt1-dev libxml2 libmagickwand-dev
+
+# install version trackers
+echo "Installing Version trackers, i.e. Git, and Subversion.."
+sagi git-core git-svn subversion
+
+# install other tools
+echo "Installing other tools, e.g. curl, imagemagick, etc."
+sagi curl imagemagick openssl openssh-client openssh-server
+# sudo apt-get install eclipse
+
+clear
+echo "Done installing dependencies and some useful modules..."
+echo "======================================================="
+echo
+echo "Now, running Apache2 + MySQL + PHP5 + PhpMyAdmin + xDebug setup.."
+echo "================================================================="
+echo
+sagi apache2 apache2-threaded-dev mysql-client mysql-common mysql-server sqlite3 php5 php5-mysql php5-cli php5-dev php-pear php5-gd php5-mcrypt php5-imagick php5-curl php5-xmlrpc php5-xsl php5-mhash phpmyadmin
+
+# Cleanup
+echo "Now, cleaning up..."
+sudo apt-get autoremove && sudo apt-get autoclean
+
+# set some configurations.
+pear config-set php_ini /etc/php5/apache2/php.ini
+pecl config-set php_ini /etc/php5/apache2/php.ini
+
+echo "upgrading pear packages.."
+sudo pear channel-update pear.php.net
+sudo pear upgrade-all
+sudo pear install HTML_QuickForm2-0.5.0 HTML_Common2 HTML_Template_Sigma
+echo "installing xdebug.."
+sudo pecl install xdebug
+#echo "installing ioncube loaders.."
+#wget http://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
+#tar zxvf ioncube_loaders_lin_x86.tar.gz
+#sudo mv ioncube /usr/local/lib/
+#echo "zend_extension=/usr/local/ioncube/ioncube_loader_lin_5.3.so" | sudo tee /etc/php5/conf.d/ioncube.ini
+
+echo "enable apache modules.."
+sudo a2enmod vhost_alias rewrite ssl suexec include proxy proxy_http
+
+clear
+echo "Done installing dependencies and some useful modules..."
+echo "======================================================="
+echo
+echo "Done with Apache2 + MySQL + PHP5 + PhpMyAdmin + xDebug setup.."
+echo "=============================================================="
+echo
+echo "Now, installing RVM with Ruby 1.9.2, Ruby 1.8.7, jRuby and Ruby Enterprise Edition..."
+echo "====================================================================================="
+echo
+
+# Install System Ruby
+# ruby executable is required for 1.9.2-head install
+echo "Installing System Ruby"
+sagi ruby irb ri rdoc rubygems
+
+# creating .gemrc file
+echo "======================================"
+echo "Creating a .gemrc file, containing --no-ri and --no-rdoc as default for gem install"
+echo "--- 
+:benchmark: false
+:verbose: true
+gem: --no-ri --no-rdoc
+:update_sources: true
+:sources: 
+- http://gemcutter.org
+- http://gems.rubyforge.org
+- http://gems.github.com
+:backtrace: false
+:bulk_threshold: 1000
+rdoc: --inline-source --line-numbers --format=html --template=hanna" > $HOME/.gemrc
+
+#sudo gem install rubygems-update
+#sudo update_rubygems
+#sudo gem install rails -v=2.3.5
+#for i in $GLOBAL_GEMS; do sudo gem install $i; done
+
+# check if rvm is already installed
+if [ "$(type rvm | head -1 | grep 'rvm is a function')" ]; then
+	# not installed... install rvm as local user..
+	echo "RVM is not installed.. Installing rvm as local user.."
+	bash < <( curl https://rvm.beginrescueend.com/releases/rvm-install-head )
+
+	echo "# ====================================================================================================="
+	echo '[[ -s "$HOME/.rvm/scripts/rvm" ]] && . "$HOME/.rvm/scripts/rvm"  # This loads RVM into a shell session.'
+	echo "# ====================================================================================================="
+
+	echo "Add the above line to your $HOME/.bashrc file, and press any key to continute.. [ENTER]"
+	read -p
+
+	echo "Testing RVM.."
+	if [ "$(type rvm | head -1 | grep 'rvm is a function')" ]; then
+		echo "Somethings failed.."
+	else
+		echo "RVM is functioning.."
+	fi
+
+	source "$HOME/.rvm/scripts/rvm"
+
+	# add global gems to be installed
+	for x in "heroku i18n mysql mysql2 bundler passenger capistrano"; do echo $x >> $HOME/.rvm/gemsets/global.gems ; done
+else
+	echo "RVM is already installed.."
+fi
+
+source $HOME/.rvm/scripts/rvm
+
+#rvm uninstall 1.8.7,1.9.2-head,ree,1.8.7-p330
+
+# Install some rubies
+function install-ruby {
+	echo "======================================"
+	if rvm list strings | grep -q "$1" ; then
+		echo "Ruby $1 already installed.."
+	else
+		echo "Ruby $1 is not installed.. installing.."
+		rvm install $1
+		echo "Now, installing Gems (including Rails).."
+		rvm use $1@global --create
+		if [ "$1" == "1.8.7-p330" ]; then
+			gem install rails -v=2.3.5
+			gem install i18n -v=0.4.2
+		elif [ "$1" == "1.9.2-head" ]; then
+			gem install rails
+		elif [ "$1" == "ree" ]; then
+			gem install rails -v=2.3.5
+		fi
+		passenger-install-apache2-module
+	fi
+}
+
+install-ruby 1.9.2-head
+install-ruby 1.8.7-p330
+install-ruby ree
+install-ruby jruby
+echo "======================================"
+echo
+
+rvm use 1.9.2-head
+rvm --default 1.9.2-head
+
+clear
+echo "Done installing dependencies and some useful modules..."
+echo "======================================================="
+echo
+echo "Done with Apache2 + MySQL + PHP5 + PhpMyAdmin + xDebug setup.."
+echo "=============================================================="
+echo
+echo "Done, installing RVM with Rails, and Ruby 1.9.2, Ruby 1.8.7, jRuby and REE + Passenger..."
+echo "========================================================================================="
+echo 
+echo "Ruby: `ruby -v`"
+echo "RubyGems: `gem -v`"
+echo "Rails: `rails -v`"
+echo
+
+# echo "restarting apache, since php.ini was modified.."
+sudo /etc/init.d/apache2 restart
+
+echo
+echo "Completed."
+echo

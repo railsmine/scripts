@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# ============================================================================= #
+# This scripts installs the required packages for my Ubuntu Installation.
+# This script should no way be used without inspection.
+# And, I provide no guarantee for the effect of this script on your Workstation.
+# The script can, however, be run multiple times, without affecting itself...
+# This script was meant to restore my Ubuntu system, when needed.
+# ============================================================================= #
+#
+set -o errexit
+
+echo "===============================================================
+Running:      Ubuntu Post-Install Runner
+On Time:      `date -R`
+===============================================================
+";
+
+function script_failure() {
+	echo
+	echo "================================"
+	echo
+	echo "FAILURE `date -R`";
+	exit 1;
+}
+function run_updater() {
+	echo
+	. $UPDATER -q
+	echo
+	echo
+}
+
+UPDATER=~/Documents/bash-scripts/updater.sh
+
+if [ "$1" == "add-repos" ]; then
+    sudo add-apt-repository ppa:bisigi/ppa
+    sudo add-apt-repository ppa:tualatrix/ppa
+    sudo add-apt-repository ppa:team-xbmc
+    sudo add-apt-repository ppa:gloobus-dev/gloobus-preview
+    sudo add-apt-repository ppa:am-monkeyd/nautilus-elementary-ppa
+    sudo add-apt-repository ppa:tiheum/equinox
+    sudo add-apt-repository ppa:elegant-gnome/ppa
+    sudo add-apt-repository ppa:patrick-dessalle/ppa
+    sudo add-apt-repository ppa:lorenzo-carbonell/atareao
+fi
+
+# doing system update to read packages from newly added repositories
+run_updater
+
+# now actually installing the required softwares
+
+# important installs
+sudo apt-get install -fyuV git-core curl guake || { echo "Could not install cores."; script_failure; }
+
+# ubuntu themes
+sudo apt-get install -fyuV gloobus-preview gtk2-engines-equinox equinox-theme equinox-ubuntu-theme elegant-gnome nautilus-wallpaper nautilus-image-converter nautilus-gksu faenza-icon-theme faenza-icons-mono faenza-dark-extras flashplugin-nonfree google-chrome-stable || { echo "Could not install ubuntu themes."; script_failure; }
+#sudo apt-get install picasa adobeair beagle
+
+# ubuntu tweaks and required components
+sudo apt-get install -fyuV ubuntu-tweak libdvdread4 sun-java6-jre sun-java6-plugin gedit-plugins ubuntu-restricted-extras || { echo "Could not install ubuntu tweaks and required components."; script_failure; }
+# media player items
+sudo apt-get install -fyuV vlc || { echo "Could not install media players."; script_failure; }
+# compiz
+sudo apt-get install -fyuV compiz compizconfig-settings-manager compiz-fusion-plugins-main compiz-fusion-plugins-extra librsvg2-common fusion-icon compizconfig-settings-manager || { echo "Could not install Compiz."; script_failure; }
+# others
+sudo apt-get install -fyuV filezilla gimp || { echo "Could not install other (optional) softwares."; script_failure; }
+
+# any-extra steps for particular softwares
+
+# clean up our apt, since we installed so many packages.. ;)
+run_updater
+
+# notes
+echo "-"
+echo "-"
+echo "============================================================================================================="
+echo "FINAL STEPS:"
+echo "============"
+echo "set swappiness to 10 from the default of 60 == increases performance"
+echo "> https://help.ubuntu.com/community/SwapFaq"
+echo "-"
+echo "change the boot logo for ubuntu, since it would have been broken to an ugly logo by ATI Driver Installation."
+echo "> http://news.softpedia.com/news/How-to-Fix-the-Big-and-Ugly-Plymouth-Logo-in-Ubuntu-10-04-140810.shtml"
+echo "-"
+echo "============================================================================================================"
+
+echo
+echo "================================"
+echo
+echo "SUCCESS"

@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# USAGE:
+# dokuwiki-upgrade 2011-05-25a
+
+if [ -z $1 ]; then echo "You need to tell me which upgrade to do.";exit 1; fi
+
+# The path to the root of the wiki
+droot=/home/public_html/nikhgupta/pers/wiki
+# The backup path
+bdir=/tmp/dokuback
+# The path to the newly unpacked source
+ndir=/tmp/newdoku
+# upgrade URL
+nurl="http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-$1.tgz"
+ 
+echo "Creating temporary folder structure..."
+mkdir $bdir 2>/dev/null
+mkdir $bdir/conf 2>/dev/null
+mkdir $bdir/lib 2>/dev/null
+mkdir $bdir/lib/images 2>/dev/null
+mkdir $bdir/wiki 2>/dev/null
+mkdir $ndir 2>/dev/null
+
+echo "Backing up the whole wiki, just in case..."
+cp -R $droot/* $bdir/wiki
+
+echo "Downloading files, if necessary..."
+if [ ! -d $ndir/dokuwiki-$1 ]; then
+	curl $nurl > $ndir/$1.tgz
+	tar xzf $ndir/$1.tgz -C $ndir
+fi
+
+echo "Fixing permissions on old install..."
+sudo chmod -R 777 $droot
+
+echo "Copying configuration files, as needed..."
+cp -R $droot/conf/* $bdir/conf
+echo "Copying data files, as needed..."
+cp -R $droot/data $bdir
+echo "Copying smileys, as needed"
+cp -R $droot/lib/images/smileys $bdir/lib/images/smileys
+echo "Copying plugins, as needed..."
+cp -R $droot/lib/plugins $bdir/lib
+echo "Copying templates, as needed..."
+cp -R $droot/lib/tpl $bdir/lib
+
+echo "Removing page which are maintained in dokuwiki"
+rm $droot/data/pages/wiki/syntax.txt
+rm $droot/data/pages/wiki/dokuwiki.txt
+rm -rf $droot/data/pages/playground/*
+ 
+echo "Removing old install..."
+rm -R $droot/*
+echo "Adding files from new install..."
+cp -R $ndir/dokuwiki-$1/* $droot
+echo "Adding saved configuration from previous install..."
+cp -R -f $bdir/* $droot
+rm -rf $droot/wiki
+echo "Removing old cache to remove notifications, etc."
+rm -rf $droot/data/cache/*
+ 
+echo "Fixing permissions on new install..."
+chmod -R 777 $droot
+
+echo "Remember to 'rm -R $bdir' when you have checked that the wiki is now working"

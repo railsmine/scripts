@@ -1,0 +1,7 @@
+NO    1   TinyCore                        e396d3a9a96f3347a861f980dd571f57    http://distro.ibiblio.org/tinycorelinux/3.x/release/tinycore-current.iso
+NO    2   Ubuntu_Minimal                  3d9f096398991ed1eaa9ff32128e199a    http://archive.ubuntu.com/ubuntu/dists/maverick/main/installer-amd64/current/images/netboot/mini.iso
+NO    2   Ubuntu_Minimal                  3d9f096398991ed1eaa9ff32128e199a    http://archive.ubuntu.com/ubuntu/dists/maverick/main/installer-amd64/current/images/netboot/mini2.iso
+NO    3   xPud                            6e5285a6c6b376d7549044286f7bc976    http://xpud.googlecode.com/files/xpud-0.9.2.iso
+NO    4   PuppyLinux                      b6658ab75cd5d48f358f0ee31b06b934    http://ftp.nluug.nl/ftp/pub/os/Linux/distr/puppylinux/puppy-5.2.5/lupu-525.iso
+NO    6   Chromium_OS_(built-Hexxeh)      --NONE--                            http://chromeos.hexxeh.net/downloadvanilla.php?build=0.12.374.2011_04_07_1729-rea439913&type=usb
+NO    5   Meego                           6690871e3f48c5aa7957e61b14b259eb    http://repo.meego.com/MeeGo/releases/1.1/netbook/images/meego-netbook-ia32/meego-netbook-ia32-1.1.img

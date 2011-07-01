@@ -1,0 +1,41 @@
+#!/bin/bash
+
+GLOBAL_GEMS="heroku i18n mysql mysql2 bundler passenger capistrano"
+
+function install-ruby {
+	echo "======================================"
+	if rvm list strings | grep -q "$1" ; then
+		echo "Ruby $1 already installed.."
+	else
+		echo "Ruby $1 is not installed.. installing.."
+		rvm install $1
+	fi
+	echo "Now, installing Gems (including Rails).."
+		rvm use $1@global --create
+		if [ "$1" == "1.8.7-p330" ]; then
+			gem install rails -v=2.3.5
+			gem install i18n -v=0.4.2
+		elif [ "$1" == "1.9.2-head" ]; then
+			gem install rails
+		elif [ "$1" == "ree" ]; then
+			gem install rails -v=2.3.5
+		fi
+		passenger-install-apache2-module
+}
+
+install-ruby 1.9.2-head
+install-ruby 1.8.7-p330
+install-ruby ree
+#install-ruby jruby
+
+
+rvm use 1.9.2-head
+rvm --default 1.9.2-head
+
+echo 
+echo "Ruby: `ruby -v`"
+echo "RubyGems: `gem -v`"
+echo "Rails: `rails -v`"
+echo
+
+sudo service apache2 restart

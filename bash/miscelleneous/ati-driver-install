@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# ========================================================================================== #
+# This script installs an ATI Driver, and initializes it.
+# If the driver has been already downloaded, you can provide the filepath below.
+# Else, the driver will be downloaded to ~/Downloads (make sure this directory exists)
+# ========================================================================================== #
+
+# ATI Driver Download URL
+ATI_URL=http://www2.ati.com/drivers/linux/ati-driver-installer-11-1-x86.x86_64.run
+
+# If driver has been already downloaded, provide the filepath below, else leave it as it is.
+FILENAME=$HOME/Downloads/ati-driver-installer-11-1-x86.x86_64.run
+
+# ========================================================================================== #
+
+if fglrxinfo | grep -q "ATI Technologies Inc." ; then
+    echo "ATI Driver already installed."
+    exit
+fi
+
+if [ "x$1" != x"" ]; then
+	FILENAME=$1
+    BASENAME=$(basename "$FILENAME")
+else
+    BASENAME=$(basename "$ATI_URL")
+fi
+
+if [ -f $FILENAME ]; then
+	echo "File already exists at: $FILENAME"
+	echo "Skipping download.."
+else
+    cd $HOME/Downloads
+	echo "Downloading ATI Driver"
+	wget -c $ATI_URL
+	echo "Downloaded required driver to: $HOME/Downloads"
+fi
+
+./$BASENAME
+
+sudo aticonfig --initial
+
+echo "Installed ATI Driver Successfully!"

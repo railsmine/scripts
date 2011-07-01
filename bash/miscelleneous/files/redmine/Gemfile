@@ -1,0 +1,13 @@
+source :rubygems
+
+gem "bundler"
+gem "rails", "2.3.5"
+gem "rack", "1.0.1"
+gem "i18n", "0.4.2"
+gem "mysql"
+gem "passenger"
+
+# other gems required for some plugins, probably.
+gem "holidays"
+gem "icalendar"
+gem "prawn"

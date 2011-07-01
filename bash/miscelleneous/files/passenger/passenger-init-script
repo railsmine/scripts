@@ -1,0 +1,74 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          app-name-passenger
+# Required-Start:    $remote_fs $syslog $all
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: app-name passenger standalone instance
+# Description:       This file starts the standalone Phusion Passenger
+#                    instance for app-name
+### END INIT INFO 
+# Author: Nikhil Gupta <me@nikhgupta.com>
+
+#PATH=/sbin:/usr/sbin:/bin:/usr/bin
+APPNAME=app-name
+PORT=app-port
+RUBY_VERSION=ruby-1.8.7-p330
+ENVIRONMENT=production 
+ADDRESS=127.0.0.1 
+RVMUSER=nikhgupta
+GEM_HOME=/home/$RVMUSER/.rvm/gems/$RUBY_VERSION@$APPNAME
+RVM=/home/$RVMUSER/.rvm/bin/rvm
+PASSENGER=/home/$RVMUSER/.rvm/gems/$RUBY_VERSION@global/bin/passenger
+APP="/home/$RVMUSER/workspace/$APPNAME"
+DESC="Phusion Passenger Standalone Daemon for: $APPNAME on Port: $PORT"
+
+# Load the VERBOSE setting and other rcS variables
+#. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+# Exit if the Passenger is not installed
+[ -x "$PASSENGER" ] || exit 0
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+	echo "Starting $DESC"
+    cd $APP
+    $RVM use $RUBY_VERSION@$APPNAME
+    $PASSENGER start -a $ADDRESS -p $PORT -e $ENVIRONMENT -d
+}
+do_stop() {
+    echo "Stopping $DESC" 
+    cd $APP 
+    $PASSENGER stop -p $PORT
+}
+do_restart() {
+    echo "Restarting $DESC"
+    cd $APP
+    $PASSENGER stop -p $PORT
+    $RVM use $RUBY_VERSION@$APPNAME
+    $PASSENGER start -a $ADDRESS -p $PORT -e $ENVIRONMENT -d
+}
+case "$1" in 
+  start) 
+    echo "Starting $APPNAME passenger service"
+    do_start
+    ;; 
+  stop) 
+    do_stop
+    ;; 
+  restart) 
+    do_restart
+    ;; 
+  *)
+    echo "Usage: $0 start|stop|restart" >> /tmp/$APPNAME.`date +%s`.log
+    ;; 
+esac

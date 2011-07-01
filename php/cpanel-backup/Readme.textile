@@ -1,0 +1,3 @@
+h1. cPanel BackUp Script
+
+This script can backup cpanel operated accounts using cpanel's own functions.
